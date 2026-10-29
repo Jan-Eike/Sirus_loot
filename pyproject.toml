@@ -1,0 +1,22 @@
+[project]
+name = "poe-loot-tracker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "google-api-python-client>=2.201.0",
+    "google-auth-httplib2>=0.4.4",
+    "google-auth-oauthlib>=1.5.0",
+    "mss>=10.2.0",
+    "opencv-python>=5.0.0.93",
+    "paddleocr>=3.7.0",
+    "paddlepaddle>=3.3.1",
+    "pygetwindow>=0.0.9",
+    "pyinput>=0.3.2",
+    "pynput>=1.8.2",
+    "pytesseract>=0.3.13",
+    "rapidfuzz>=3.14.5",
+    "tqdm>=4.70.1",
+    "watchdog>=6.0.0",
+]
