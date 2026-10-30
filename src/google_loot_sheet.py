@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import uuid
 import webbrowser
 from collections.abc import Iterable
@@ -295,27 +296,149 @@ def get_or_create_spreadsheet(service=None) -> dict:
     return create_spreadsheet(service)
 
 
-def append_run(player: str, boss: str, loot: str, time: str):
+def _runs_sheet_id(service, spreadsheet_id) -> int | None:
+    """Gibt die sheetId des Tabellenblatts 'Runs' zurueck."""
+    spreadsheet = (
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets.properties")
+        .execute()
+    )
+    for sheet in spreadsheet.get("sheets", []):
+        if sheet["properties"]["title"] == "Runs":
+            return sheet["properties"]["sheetId"]
+    return None
+
+
+def _row_background_color(service, spreadsheet_id, row_number: int) -> dict | None:
+    """Gibt die Hintergrundfarbe der Zeile ``row_number`` (1-basiert) zurueck."""
+    if row_number < 1:
+        return None
+    resp = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            ranges=[f"Runs!A{row_number}:F{row_number}"],
+            fields="sheets/data/rowData/values/userEnteredFormat/backgroundColor",
+            includeGridData=True,
+        )
+        .execute()
+    )
+    for sheet in resp.get("sheets", []):
+        for data in sheet.get("data", []):
+            for row_data in data.get("rowData", []):
+                for cell in row_data.get("values", []):
+                    color = cell.get("userEnteredFormat", {}).get("backgroundColor")
+                    if color:
+                        return color
+    return None
+
+
+def _baseline_background_color(service, spreadsheet_id, from_row: int) -> dict | None:
+    """Sucht rueckwaerts die Farbe der letzten nicht-roten Zeile.
+
+    Angehaengte Zeilen uebernehmen die Farbe der vorherigen Zeile. Um zu
+    verhindern, dass ein roter Fehler-Row in nachfolgende normale Zeilen
+    "hinunterfliegt", suchen wir die letzte Zeile, die nicht rot ist, und
+    verwenden deren Farbe als Basis.
+    """
+    for row in range(from_row, 1, -1):
+        color = _row_background_color(service, spreadsheet_id, row)
+        if not color:
+            continue
+        is_red = (
+            color.get("red", 0) > 0.8
+            and color.get("green", 0) < 0.4
+            and color.get("blue", 0) < 0.4
+        )
+        if not is_red:
+            return color
+    return None
+
+
+def append_run(player: str, boss: str, loot: str, time: str, error: bool = False):
     """Fuegt einen Run und seine Drops an und gibt die run_id zurueck."""
     service = get_service()
     config = get_or_create_spreadsheet(service)
     spreadsheet_id = config["spreadsheet_id"]
-
-    rows = read_rows("Runs")
-    existing_ids = []
-    for row in rows[1:]:
-        if row and row[0].isdigit():
-            existing_ids.append(int(row[0]))
-    run_id = str((max(existing_ids) + 1) if existing_ids else 1)
     timestamp = datetime.now(UTC).isoformat(timespec="seconds")
 
-    service.spreadsheets().values().append(
+    # Die Zeilennummer (und damit die run_id) vergibt das Sheet selbst
+    # atomisch beim Anhaengen. Zwei gleichzeitige Aufrufe erhalten so immer
+    # verschiedene Zeilen. Die Formel =ROW()-1 wird nach dem Anhaengen
+    # automatisch berechnet und zeigt auf die gerade angelegte Zeile.
+    result = (
+        service.spreadsheets()
+        .values()
+        .append(
+            spreadsheetId=spreadsheet_id,
+            range="Runs!A:F",
+            valueInputOption="USER_ENTERED",
+            insertDataOption="INSERT_ROWS",
+            body={"values": [["=ROW()-1", timestamp, player, boss, loot, time]]},
+        )
+        .execute()
+    )
+
+    updated_range = result.get("updates", {}).get("updatedRange") or result.get(
+        "updatedRange", ""
+    )
+    match = re.search(r"!A(\d+)", updated_range)
+    if not match:
+        raise RuntimeError(
+            f"append-Antwort enthaelt keine Zeilennummer: {updated_range!r} (raw: {result!r})"
+        )
+    row_number = int(match.group(1))  # 1-basiert; Zeile 1 ist die Kopfzeile
+    run_id = str(row_number - 1)
+
+    sheet_id = _runs_sheet_id(service, spreadsheet_id)
+    if sheet_id is None:
+        return run_id
+
+    # Hintergrundfarbe der neuen Zeile setzen. Da angehaengte Zeilen die Farbe
+    # der vorherigen uebernehmen, setzen wir sie explizit: rot bei Fehler,
+    # sonst die Farbe der letzten nicht-roten Zeile (oder Weiss).
+    if error:
+        red, green, blue = (0.9, 0.3, 0.3)
+    else:
+        prev_color = _baseline_background_color(service, spreadsheet_id, row_number - 1)
+        if prev_color:
+            red, green, blue = (
+                prev_color.get("red", 0.12),
+                prev_color.get("green", 0.27),
+                prev_color.get("blue", 0.45),
+            )
+        else:
+            red, green, blue = (0.12, 0.27, 0.45)
+
+    service.spreadsheets().batchUpdate(
         spreadsheetId=spreadsheet_id,
-        range="Runs!A:E",
-        valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
-        body={"values": [[run_id, timestamp, player, boss, loot, time]]},
+        body={
+            "requests": [
+                {
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "startRowIndex": row_number - 1,
+                            "endRowIndex": row_number,
+                            "startColumnIndex": 0,
+                            "endColumnIndex": len(RUN_HEADERS),
+                        },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "backgroundColor": {
+                                    "red": red,
+                                    "green": green,
+                                    "blue": blue,
+                                }
+                            }
+                        },
+                        "fields": "userEnteredFormat.backgroundColor",
+                    }
+                }
+            ]
+        },
     ).execute()
+    return run_id
 
 
 def read_rows(tab_name: str) -> list[list[str]]:

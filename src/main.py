@@ -40,6 +40,31 @@ LOOT_TABLE = [
     "annihilation support",
 ]
 
+LOOT_MAPPING: dict[str, str] = {
+    "oubliette reliquary key": "Oubliette Reliquary Key",
+    "goliath greaves": "The Tempest Rising",
+    "awakener's orb": "Awakener's Orb",
+    "crimson jewel": "Thread of Hope",
+    "orb of dominance": "Orb of Dominance",
+    "a fate worse than death": "A Fate worse than Death",
+    "bismuth flask": "Oriath's End",
+    "prismatic ring": "Zana's Ingenuity",
+    "legion sword": "The Saviour",
+    "annihilation support": "Annihilation Support",
+}
+
+LOOT_EXCLUDED: list[str] = [
+    "goliath greaves",
+    "crimson jewel",
+    "bismuth flask",
+    "prismatic ring",
+    "legion sword",
+]
+
+
+def check_loot_plausibility(loot: list[str]) -> bool:
+    return sum(item in LOOT_EXCLUDED for item in loot) >= 2
+
 
 def capture_game() -> MatLike:
     windows: list[gw.Win32Window] = gw.getWindowsWithTitle(GAME_TITLE)
@@ -155,11 +180,14 @@ def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str) -> None:
                 round(float(result["score"]), 1),
             )
 
+        loot: list[str] = [str(result["item"]) for result in results]
+        error = check_loot_plausibility(loot)
         g.append_run(
             player="Jan-Eike",
             boss="Sirus",
-            loot=", ".join([str(result["item"]) for result in results]),
+            loot=", ".join([LOOT_MAPPING[loot_item] for loot_item in loot]),
             time=mm_ss,
+            error=error,
         )
     except Exception as e:  # noqa: BLE001
         print(f"OCR thread error: {e}")
@@ -177,7 +205,7 @@ def main():
 
     target = "I felt something"
     target_time = "Did you really think this would work"
-
+    time_start = datetime.now(UTC)
     last_mtime = 0
     while True:
         try:
