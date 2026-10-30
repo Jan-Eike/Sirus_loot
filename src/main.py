@@ -1,20 +1,30 @@
-import re
-import time
+import json
 import os
-from datetime import UTC, datetime
+import re
+import threading
+import time
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import cv2
 import mss
 import numpy as np
 import pygetwindow as gw
+from cv2.typing import MatLike
+from paddleocr import PaddleOCR
 from rapidfuzz import fuzz, process
 
-import google_loot_sheet as g
+import google_loot_sheet as g  # ty: ignore[unresolved-import]
 
 GAME_TITLE = "Path of Exile"
 
-CLIENT = (
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt"
+CONFIG_FILE = Path(__file__).resolve().parent.parent / "config" / "config.json"
+_config = (
+    json.loads(CONFIG_FILE.read_text(encoding="utf-8")) if CONFIG_FILE.exists() else {}
+)
+CLIENT: str = _config.get(
+    "client_path",
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt",
 )
 
 LOOT_TABLE = [
@@ -27,20 +37,19 @@ LOOT_TABLE = [
     "bismuth flask",
     "prismatic ring",
     "legion sword",
+    "annihilation support",
 ]
 
-from paddleocr import PaddleOCR
 
-
-def capture_game():
-    windows = gw.getWindowsWithTitle(GAME_TITLE)
+def capture_game() -> MatLike:
+    windows: list[gw.Win32Window] = gw.getWindowsWithTitle(GAME_TITLE)
 
     if not windows:
         raise RuntimeError(f'Game window "{GAME_TITLE}" not found')
 
     window = windows[0]
 
-    region = {
+    region: dict[str, float] = {
         "left": window.left,
         "top": window.top,
         "width": window.width,
@@ -49,18 +58,18 @@ def capture_game():
 
     with mss.MSS() as sct:
         screenshot = np.array(sct.grab(region))
-        frame = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
+        image = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
 
-    return frame
+    return image
 
 
-def run_ocr(image, ocr):
+def run_ocr(image: MatLike, ocr: PaddleOCR) -> list[str]:
+    """Runs ocr and returns found text."""
     results = ocr.predict(image)
-
     return results[0].json["res"]["rec_texts"]
 
 
-def normalize(text):
+def _normalize(text: str) -> str:
     text = text.lower()
 
     # Apostrophe becomes nothing:
@@ -77,15 +86,13 @@ def normalize(text):
     return text.strip()
 
 
-def find_loot(ocr_text, threshold=80):
-    normalized_loot = {normalize(item): item for item in LOOT_TABLE}
-    normalized_text = normalize(ocr_text)
+def find_loot(ocr_text: str, threshold: int = 80) -> list[dict[str, str | float]]:
+    normalized_loot = {_normalize(item): item for item in LOOT_TABLE}
+    normalized_text = _normalize(ocr_text)
 
-    # Split into words
     words = normalized_text.split()
 
-    candidates = []
-
+    candidates: list[str] = []
     # Generate every possible 1-5 word section
     for start in range(len(words)):
         for length in range(1, 6):
@@ -98,7 +105,7 @@ def find_loot(ocr_text, threshold=80):
 
             candidates.append(phrase)
 
-    matches = []
+    matches: list[dict[str, str | float]] = []
 
     for candidate in candidates:
         result = process.extractOne(
@@ -123,7 +130,7 @@ def find_loot(ocr_text, threshold=80):
     matches.sort(key=lambda x: x["score"], reverse=True)
 
     # Remove duplicate items
-    found = {}
+    found: dict[str | float, dict[str, str | float]] = {}
 
     for match in matches:
         item = match["item"]
@@ -134,57 +141,71 @@ def find_loot(ocr_text, threshold=80):
     return list(found.values())
 
 
-ocr = PaddleOCR(
-    lang="en",
-    device="cpu",
-    enable_mkldnn=False,
-    use_doc_orientation_classify=False,
-    use_doc_unwarping=False,
-    use_textline_orientation=False,
-)
-
-
-from pathlib import Path
-
-p = Path(CLIENT)
-target = "I felt something"
-last_mtime = 0
-while True:
+def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str) -> None:
     try:
-        mtime = os.path.getmtime(CLIENT)
-    except OSError:
-        mtime = 0
-    if mtime != last_mtime:
-        last_mtime = mtime
-        with open(CLIENT, "rb") as f:
-            f.seek(0, 2)
-            size = f.tell()
-            f.seek(max(0, size - 512))
-            tail = f.read().decode(errors="ignore")
-        lines = tail.splitlines()
-        print(lines)
-        if lines and target in lines[-1]:
-            image = capture_game()
-            results = run_ocr(image, ocr)
-            results = find_loot(" ".join(results), threshold=85)
+        results = run_ocr(image, ocr)
+        results = find_loot(" ".join(results), threshold=85)
 
-            for result in results:
-                print(
-                    result["item"],
-                    " <- OCR:",
-                    repr(result["ocr"]),
-                    "score:",
-                    round(result["score"], 1),
-                )
-
-            g.append_row(
-                "Runs",
-                [
-                    "1",
-                    datetime.now(UTC).isoformat(),
-                    "Jan-Eike",
-                    "Sirus",
-                    ", ".join([result["item"] for result in results]),
-                ],
+        for result in results:
+            print(
+                result["item"],
+                " <- OCR:",
+                repr(result["ocr"]),
+                "score:",
+                round(float(result["score"]), 1),
             )
-    time.sleep(1)
+
+        g.append_run(
+            player="Jan-Eike",
+            boss="Sirus",
+            loot=", ".join([str(result["item"]) for result in results]),
+            time=mm_ss,
+        )
+    except Exception as e:  # noqa: BLE001
+        print(f"OCR thread error: {e}")
+
+
+def main():
+    ocr = PaddleOCR(
+        lang="en",
+        device="cpu",
+        enable_mkldnn=False,
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
+        use_textline_orientation=False,
+    )
+
+    target = "I felt something"
+    target_time = "Did you really think this would work"
+
+    last_mtime = 0
+    while True:
+        try:
+            mtime = os.path.getmtime(CLIENT)
+        except OSError:
+            mtime = 0
+        if mtime != last_mtime:
+            last_mtime = mtime
+            with open(CLIENT, "rb") as f:
+                f.seek(0, 2)
+                size = f.tell()
+                f.seek(max(0, size - 512))
+                tail = f.read().decode(errors="ignore")
+            lines = tail.splitlines()
+            if lines and target_time in lines[-1]:
+                time_start = datetime.now(UTC)
+            if lines and target in lines[-1]:
+                time_end = datetime.now(UTC)
+                time_total = time_end - time_start + timedelta(seconds=10)
+                mm_ss = f"{int(time_total.total_seconds() // 60):02d}:{int(time_total.total_seconds() % 60):02d}"
+                image = capture_game()
+                threading.Thread(
+                    target=_process_loot,
+                    args=(image, ocr, mm_ss),
+                    daemon=True,
+                ).start()
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()

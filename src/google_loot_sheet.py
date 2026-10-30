@@ -26,9 +26,9 @@ import json
 import os
 import uuid
 import webbrowser
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
@@ -39,23 +39,23 @@ from googleapiclient.errors import HttpError
 
 APP_DIR = Path(__file__).resolve().parent
 CREDENTIALS_FILE = Path(
-    os.environ.get("GOOGLE_CREDENTIALS_FILE", APP_DIR / "credentials.json")
+    os.environ.get(
+        "GOOGLE_CREDENTIALS_FILE", APP_DIR.parent / "config" / "credentials.json"
+    )
 )
-TOKEN_FILE = Path(os.environ.get("GOOGLE_TOKEN_FILE", APP_DIR / "token.json"))
+TOKEN_FILE = Path(
+    os.environ.get("GOOGLE_TOKEN_FILE", APP_DIR.parent / "config" / "token.json")
+)
 CONFIG_FILE = Path(
-    os.environ.get("GOOGLE_SHEET_CONFIG_FILE", APP_DIR / "sheet_config.json")
+    os.environ.get(
+        "GOOGLE_SHEET_CONFIG_FILE", APP_DIR.parent / "config" / "sheet_config.json"
+    )
 )
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_TITLE = "PoE Loot Tracker"
 
-RUN_HEADERS = [
-    "run_id",
-    "timestamp_utc",
-    "player",
-    "boss",
-    "loot",
-]
+RUN_HEADERS = ["run_id", "timestamp_utc", "player", "boss", "loot", "time"]
 
 
 def _authenticate() -> Credentials:
@@ -145,7 +145,7 @@ def connect_spreadsheet(spreadsheet_id_or_url: str) -> dict:
     sheet_titles = {
         sheet["properties"]["title"] for sheet in spreadsheet.get("sheets", [])
     }
-    missing_sheets = {"Runs", "Drops"} - sheet_titles
+    missing_sheets = {"Runs"} - sheet_titles
 
     if missing_sheets:
         raise RuntimeError(
@@ -249,7 +249,6 @@ def create_spreadsheet(service=None) -> dict:
                 "properties": {"title": SPREADSHEET_TITLE},
                 "sheets": [
                     {"properties": {"title": "Runs"}},
-                    {"properties": {"title": "Drops"}},
                 ],
             },
             fields="spreadsheetId,spreadsheetUrl,sheets.properties",
@@ -264,7 +263,7 @@ def create_spreadsheet(service=None) -> dict:
         body={
             "valueInputOption": "RAW",
             "data": [
-                {"range": "Runs!A1:E1", "values": [RUN_HEADERS]},
+                {"range": "Runs!A1:F1", "values": [RUN_HEADERS]},
             ],
         },
     ).execute()
@@ -296,19 +295,18 @@ def get_or_create_spreadsheet(service=None) -> dict:
     return create_spreadsheet(service)
 
 
-def append_run(
-    player: str,
-    boss: str,
-    loot_items: Iterable[str] = (),
-    notes: str = "",
-    confidences: Iterable[float | None] | None = None,
-) -> str:
+def append_run(player: str, boss: str, loot: str, time: str):
     """Fuegt einen Run und seine Drops an und gibt die run_id zurueck."""
     service = get_service()
     config = get_or_create_spreadsheet(service)
     spreadsheet_id = config["spreadsheet_id"]
 
-    run_id = str(uuid.uuid4())
+    rows = read_rows("Runs")
+    existing_ids = []
+    for row in rows[1:]:
+        if row and row[0].isdigit():
+            existing_ids.append(int(row[0]))
+    run_id = str((max(existing_ids) + 1) if existing_ids else 1)
     timestamp = datetime.now(UTC).isoformat(timespec="seconds")
 
     service.spreadsheets().values().append(
@@ -316,36 +314,8 @@ def append_run(
         range="Runs!A:E",
         valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
-        body={"values": [[run_id, timestamp, player, boss, notes]]},
+        body={"values": [[run_id, timestamp, player, boss, loot, time]]},
     ).execute()
-
-    loot_items = list(loot_items)
-    confidence_values = list(confidences or [])
-
-    drop_rows = []
-    for index, item_text in enumerate(loot_items):
-        confidence = confidence_values[index] if index < len(confidence_values) else ""
-        drop_rows.append(
-            [
-                str(uuid.uuid4()),
-                run_id,
-                item_text,
-                confidence,
-                1,
-                "",
-            ]
-        )
-
-    if drop_rows:
-        service.spreadsheets().values().append(
-            spreadsheetId=spreadsheet_id,
-            range="Drops!A:F",
-            valueInputOption="RAW",
-            insertDataOption="INSERT_ROWS",
-            body={"values": drop_rows},
-        ).execute()
-
-    return run_id
 
 
 def read_rows(tab_name: str) -> list[list[str]]:
@@ -448,14 +418,6 @@ def main() -> None:
         print(config["url"])
     elif arguments.command == "open":
         print(open_spreadsheet())
-    elif arguments.command == "add-run":
-        run_id = append_run(
-            player=arguments.player,
-            boss=arguments.boss,
-            loot_items=arguments.loot,
-            notes=arguments.notes,
-        )
-        print(run_id)
     elif arguments.command == "list-runs":
         _print_table(read_rows("Runs"))
     elif arguments.command == "list-drops":
