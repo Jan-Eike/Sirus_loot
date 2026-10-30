@@ -362,10 +362,7 @@ def append_run(player: str, boss: str, loot: str, time: str, error: bool = False
     spreadsheet_id = config["spreadsheet_id"]
     timestamp = datetime.now(UTC).isoformat(timespec="seconds")
 
-    # Die Zeilennummer (und damit die run_id) vergibt das Sheet selbst
-    # atomisch beim Anhaengen. Zwei gleichzeitige Aufrufe erhalten so immer
-    # verschiedene Zeilen. Die Formel =ROW()-1 wird nach dem Anhaengen
-    # automatisch berechnet und zeigt auf die gerade angelegte Zeile.
+    run_id = str(uuid.uuid4())
     result = (
         service.spreadsheets()
         .values()
@@ -374,7 +371,7 @@ def append_run(player: str, boss: str, loot: str, time: str, error: bool = False
             range="Runs!A:F",
             valueInputOption="USER_ENTERED",
             insertDataOption="INSERT_ROWS",
-            body={"values": [["=ROW()-1", timestamp, player, boss, loot, time]]},
+            body={"values": [[run_id, timestamp, player, boss, loot, time]]},
         )
         .execute()
     )
@@ -383,15 +380,10 @@ def append_run(player: str, boss: str, loot: str, time: str, error: bool = False
         "updatedRange", ""
     )
     match = re.search(r"!A(\d+)", updated_range)
-    if not match:
-        raise RuntimeError(
-            f"append-Antwort enthaelt keine Zeilennummer: {updated_range!r} (raw: {result!r})"
-        )
-    row_number = int(match.group(1))  # 1-basiert; Zeile 1 ist die Kopfzeile
-    run_id = str(row_number - 1)
+    row_number = int(match.group(1)) if match else None
 
     sheet_id = _runs_sheet_id(service, spreadsheet_id)
-    if sheet_id is None:
+    if sheet_id is None or row_number is None:
         return run_id
 
     # Hintergrundfarbe der neuen Zeile setzen.
