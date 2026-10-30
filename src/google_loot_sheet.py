@@ -394,21 +394,11 @@ def append_run(player: str, boss: str, loot: str, time: str, error: bool = False
     if sheet_id is None:
         return run_id
 
-    # Hintergrundfarbe der neuen Zeile setzen. Da angehaengte Zeilen die Farbe
-    # der vorherigen uebernehmen, setzen wir sie explizit: rot bei Fehler,
-    # sonst die Farbe der letzten nicht-roten Zeile (oder Weiss).
+    # Hintergrundfarbe der neuen Zeile setzen.
     if error:
         red, green, blue = (0.9, 0.3, 0.3)
     else:
-        prev_color = _baseline_background_color(service, spreadsheet_id, row_number - 1)
-        if prev_color:
-            red, green, blue = (
-                prev_color.get("red", 0.12),
-                prev_color.get("green", 0.27),
-                prev_color.get("blue", 0.45),
-            )
-        else:
-            red, green, blue = (0.12, 0.27, 0.45)
+        red, green, blue = (0.12, 0.27, 0.45)
 
     service.spreadsheets().batchUpdate(
         spreadsheetId=spreadsheet_id,
