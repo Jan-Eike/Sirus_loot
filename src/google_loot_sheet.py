@@ -28,9 +28,9 @@ import re
 import time
 import uuid
 import webbrowser
-from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
@@ -92,7 +92,7 @@ def _authenticate() -> Credentials:
     return credentials
 
 
-def get_service():
+def get_service() -> Any:
     """Gibt einen authentifizierten Google-Sheets-Service zurueck."""
     return build(
         "sheets",
@@ -102,14 +102,14 @@ def get_service():
     )
 
 
-def _load_config() -> dict | None:
+def _load_config() -> dict[str, Any] | None:
     if not CONFIG_FILE.exists():
         return None
 
     return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 
-def _save_config(spreadsheet_id: str) -> dict:
+def _save_config(spreadsheet_id: str) -> dict[str, Any]:
     config = {
         "spreadsheet_id": spreadsheet_id,
         "url": f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit",
@@ -130,7 +130,7 @@ def _extract_spreadsheet_id(value: str) -> str:
     return value
 
 
-def connect_spreadsheet(spreadsheet_id_or_url: str) -> dict:
+def connect_spreadsheet(spreadsheet_id_or_url: str) -> dict[str, Any]:
     """Verbindet diesen Rechner mit einem bereits vorhandenen zentralen Sheet."""
     spreadsheet_id = _extract_spreadsheet_id(spreadsheet_id_or_url)
     service = get_service()
@@ -158,7 +158,7 @@ def connect_spreadsheet(spreadsheet_id_or_url: str) -> dict:
     return _save_config(spreadsheet_id)
 
 
-def _format_new_spreadsheet(service, spreadsheet: dict) -> None:
+def _format_new_spreadsheet(service: Any, spreadsheet: dict[str, Any]) -> None:
     sheet_ids = {
         sheet["properties"]["title"]: sheet["properties"]["sheetId"]
         for sheet in spreadsheet["sheets"]
@@ -240,7 +240,7 @@ def _format_new_spreadsheet(service, spreadsheet: dict) -> None:
     ).execute()
 
 
-def create_spreadsheet(service=None) -> dict:
+def create_spreadsheet(service: Any = None) -> dict[str, Any]:
     """Erstellt das zentrale Sheet im Drive des angemeldeten Kontos."""
     service = service or get_service()
 
@@ -274,7 +274,7 @@ def create_spreadsheet(service=None) -> dict:
     return _save_config(spreadsheet_id)
 
 
-def get_or_create_spreadsheet(service=None) -> dict:
+def get_or_create_spreadsheet(service: Any = None) -> dict[str, Any]:
     """Verwendet das vorhandene Sheet oder erstellt es beim ersten Start."""
     service = service or get_service()
     config = _load_config()
@@ -297,7 +297,7 @@ def get_or_create_spreadsheet(service=None) -> dict:
     return create_spreadsheet(service)
 
 
-def _runs_sheet_id(service, spreadsheet_id) -> int | None:
+def _runs_sheet_id(service: Any, spreadsheet_id: str) -> int | None:
     """Gibt die sheetId des Tabellenblatts 'Runs' zurueck."""
     spreadsheet = (
         service.spreadsheets()
@@ -310,7 +310,9 @@ def _runs_sheet_id(service, spreadsheet_id) -> int | None:
     return None
 
 
-def _row_background_color(service, spreadsheet_id, row_number: int) -> dict | None:
+def _row_background_color(
+    service: Any, spreadsheet_id: str, row_number: int
+) -> dict[str, Any] | None:
     """Gibt die Hintergrundfarbe der Zeile ``row_number`` (1-basiert) zurueck."""
     if row_number < 1:
         return None
@@ -334,7 +336,9 @@ def _row_background_color(service, spreadsheet_id, row_number: int) -> dict | No
     return None
 
 
-def _baseline_background_color(service, spreadsheet_id, from_row: int) -> dict | None:
+def _baseline_background_color(
+    service: Any, spreadsheet_id: str, from_row: int
+) -> dict[str, Any] | None:
     """Sucht rueckwaerts die Farbe der letzten nicht-roten Zeile.
 
     Angehaengte Zeilen uebernehmen die Farbe der vorherigen Zeile. Um zu
@@ -356,9 +360,32 @@ def _baseline_background_color(service, spreadsheet_id, from_row: int) -> dict |
     return None
 
 
+def _find_row_by_run_id(
+    service: Any,
+    spreadsheet_id: str,
+    run_id: str,
+    attempts: int = 25,
+    delay: float = 0.2,
+) -> int | None:
+    """Find the 1-based row number containing run_id in column A."""
+    for _ in range(attempts):
+        rows = (
+            service.spreadsheets()
+            .values()
+            .get(spreadsheetId=spreadsheet_id, range="Runs!A:A")
+            .execute()
+            .get("values", [])
+        )
+        for idx, row in enumerate(rows, start=1):
+            if row and row[0] == run_id:
+                return idx
+        time.sleep(delay)
+    return None
+
+
 def append_run(
     player: str, boss: str, loot: str, time_to_complete: str, error: bool = False
-):
+) -> str:
     """Fuegt einen Run und seine Drops an und gibt die run_id zurueck."""
     service = get_service()
     config = get_or_create_spreadsheet(service)
@@ -383,27 +410,11 @@ def append_run(
 
     # Zeile anhand der eindeutigen run_id nachschlagen (robust gegen
     # ueberlappende updatedRange bei gleichzeitigen Aufrufen).
-    row_number = None
-    for _ in range(25):
-        rows = (
-            service.spreadsheets()
-            .values()
-            .get(spreadsheetId=spreadsheet_id, range="Runs!A:A")
-            .execute()
-            .get("values", [])
-        )
-        for idx, row in enumerate(rows, start=1):
-            if row and row[0] == run_id:
-                row_number = idx
-                break
-        if row_number is not None:
-            break
-        time.sleep(0.2)
+    row_number = _find_row_by_run_id(service, spreadsheet_id, run_id)
 
     updated_range = result.get("updates", {}).get("updatedRange") or result.get(
         "updatedRange", ""
     )
-
     if row_number is None:
         match = re.search(r"!A(\d+)", updated_range)
         if match:
@@ -483,7 +494,7 @@ def _print_table(rows: list[list[str]]) -> None:
         print("\t".join(str(value) for value in row))
 
 
-def append_row(tab_name: str, values: list) -> None:
+def append_row(tab_name: str, values: list[Any]) -> None:
     if tab_name not in {"Runs", "Drops"}:
         raise ValueError("tab_name muss 'Runs' oder 'Drops' sein.")
     service = get_service()
