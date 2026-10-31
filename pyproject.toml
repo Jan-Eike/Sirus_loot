@@ -20,3 +20,7 @@ dependencies = [
     "tqdm>=4.70.1",
     "watchdog>=6.0.0",
 ]
+
+[tool.ty.environment]
+python-version = "3.13"
+root = ["./src", "."]
