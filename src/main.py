@@ -186,7 +186,7 @@ def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str) -> None:
             player="Jan-Eike",
             boss="Sirus",
             loot=", ".join([LOOT_MAPPING[loot_item] for loot_item in loot]),
-            time=mm_ss,
+            time_to_complete=mm_ss,
             error=error,
         )
     except Exception as e:  # noqa: BLE001

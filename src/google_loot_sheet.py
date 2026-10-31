@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import time
 import uuid
 import webbrowser
 from collections.abc import Iterable
@@ -355,7 +356,9 @@ def _baseline_background_color(service, spreadsheet_id, from_row: int) -> dict |
     return None
 
 
-def append_run(player: str, boss: str, loot: str, time: str, error: bool = False):
+def append_run(
+    player: str, boss: str, loot: str, time_to_complete: str, error: bool = False
+):
     """Fuegt einen Run und seine Drops an und gibt die run_id zurueck."""
     service = get_service()
     config = get_or_create_spreadsheet(service)
@@ -371,16 +374,40 @@ def append_run(player: str, boss: str, loot: str, time: str, error: bool = False
             range="Runs!A:F",
             valueInputOption="USER_ENTERED",
             insertDataOption="INSERT_ROWS",
-            body={"values": [[run_id, timestamp, player, boss, loot, time]]},
+            body={
+                "values": [[run_id, timestamp, player, boss, loot, time_to_complete]]
+            },
         )
         .execute()
     )
 
+    # Zeile anhand der eindeutigen run_id nachschlagen (robust gegen
+    # ueberlappende updatedRange bei gleichzeitigen Aufrufen).
+    row_number = None
+    for _ in range(25):
+        rows = (
+            service.spreadsheets()
+            .values()
+            .get(spreadsheetId=spreadsheet_id, range="Runs!A:A")
+            .execute()
+            .get("values", [])
+        )
+        for idx, row in enumerate(rows, start=1):
+            if row and row[0] == run_id:
+                row_number = idx
+                break
+        if row_number is not None:
+            break
+        time.sleep(0.2)
+
     updated_range = result.get("updates", {}).get("updatedRange") or result.get(
         "updatedRange", ""
     )
-    match = re.search(r"!A(\d+)", updated_range)
-    row_number = int(match.group(1)) if match else None
+
+    if row_number is None:
+        match = re.search(r"!A(\d+)", updated_range)
+        if match:
+            row_number = int(match.group(1))
 
     sheet_id = _runs_sheet_id(service, spreadsheet_id)
     if sheet_id is None or row_number is None:
