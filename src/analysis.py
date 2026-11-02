@@ -1,8 +1,10 @@
 import pandas as pd
 
-from google_loot_sheet import get_or_create_spreadsheet, get_service, read_rows
+from google_sheets_data import read_rows
+from google_sheets_setup import get_or_create_spreadsheet, get_service
 
 
+# TODO: Add Analysis per Boss/player etc.
 def analyse_loot_data(loot_table: pd.DataFrame) -> pd.DataFrame:
     item_counts: pd.Series = loot_table["loot"].str.split(", ").explode().value_counts()
     run_number = loot_table.shape[0]

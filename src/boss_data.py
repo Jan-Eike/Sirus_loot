@@ -1,0 +1,16 @@
+from dataclasses import dataclass
+
+
+# TODO: Add auto trackable
+@dataclass
+class Boss:
+    name: str
+    display_name: str
+    location: str
+    area_level: int
+    kill_line: str
+    time_to_loot: float
+    loot_bases: list[str]
+    loot_map: dict[str, str]
+    auto_trackable: bool = True
+    is_uber: bool = False

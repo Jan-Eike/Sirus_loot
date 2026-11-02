@@ -1,33 +1,27 @@
-LOOT_TABLE: list[str] = [
-    "oubliette reliquary key",
-    "goliath greaves",
-    "awakener's orb",
-    "crimson jewel",
-    "orb of dominance",
-    "a fate worse than death",
-    "bismuth flask",
-    "prismatic ring",
-    "legion sword",
-    "annihilation support",
-]
-
-LOOT_MAPPING: dict[str, str] = {
-    "oubliette reliquary key": "Oubliette Reliquary Key",
-    "goliath greaves": "The Tempest Rising",
-    "awakener's orb": "Awakener's Orb",
-    "crimson jewel": "Thread of Hope",
-    "orb of dominance": "Orb of Dominance",
-    "a fate worse than death": "A Fate worse than Death",
-    "bismuth flask": "Oriath's End",
-    "prismatic ring": "Zana's Ingenuity",
-    "legion sword": "The Saviour",
-    "annihilation support": "Annihilation Support",
-}
-
+# TODO: Complete
 LOOT_EXCLUDED: list[str] = [
     "goliath greaves",
     "crimson jewel",
     "bismuth flask",
     "prismatic ring",
     "legion sword",
+    "sulphur flask",
+    "void sceptre",
+    "the unseen hue",
+    "coiling whisper",
+    "steel ring",
+    "paladin crown",
+    "bonemeld",
+    "the hallowed monarch",
+    "fragment of terror",
+    "fragment of emptiness",
+    "cyclopean coil",
+    "colossal tower shield",
+    "quarterstaff",
+    "inextricable fate",
+    "ravenous passion",
+    "cloth belt",
+    "two hand sword",
+    "crusader gloves",
+    "royal burgonet",
 ]

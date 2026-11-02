@@ -1,3 +1,4 @@
+import ctypes
 import json
 import os
 import re
@@ -5,6 +6,7 @@ import threading
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Literal
 
 import cv2
 import mss
@@ -14,8 +16,13 @@ from cv2.typing import MatLike
 from paddleocr import PaddleOCR
 from rapidfuzz import fuzz, process
 
-from constants import LOOT_EXCLUDED, LOOT_MAPPING, LOOT_TABLE
-from google_loot_sheet import append_run
+from boss_definitions import BOSSES
+
+user32 = ctypes.windll.user32
+
+from boss_data import Boss
+from constants import LOOT_EXCLUDED
+from google_sheets_data import append_run
 
 GAME_TITLE = "Path of Exile"
 
@@ -111,17 +118,20 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
-def find_loot(ocr_text: str, threshold: int = 80) -> list[dict[str, str | float]]:
+def find_loot(
+    ocr_text: str, boss: Boss, threshold: int = 80
+) -> list[dict[str, str | float]]:
     """Find the loot from the extracted ocr text by using fuzzy matching
 
     Args:
         ocr_text (str): found ocr text from the image
+        boss (Boss): boss object containing loot data
         threshold (int, optional): confidence threshold for the fuzzy matching. Defaults to 80.
 
     Returns:
         list[dict[str, str | float]]: list of dictionaries with information about each item
     """
-    normalized_loot = {_normalize(item): item for item in LOOT_TABLE}
+    normalized_loot = {_normalize(item): item for item in boss.loot_bases}
     normalized_text = _normalize(ocr_text)
 
     words = normalized_text.split()
@@ -136,7 +146,6 @@ def find_loot(ocr_text: str, threshold: int = 80) -> list[dict[str, str | float]
                 break
 
             phrase = " ".join(words[start:end])
-
             candidates.append(phrase)
 
     matches: list[dict[str, str | float]] = []
@@ -175,17 +184,18 @@ def find_loot(ocr_text: str, threshold: int = 80) -> list[dict[str, str | float]
     return list(found.values())
 
 
-def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str) -> None:
+def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str, boss: Boss) -> None:
     """Runs ocr and extracts loot from found strings. Appends it to the google sheets table afterwards.
 
     Args:
         image (MatLike): the image captured to do ocr on
         ocr (PaddleOCR): the ocr object
         mm_ss (str): time in mm:ss it took to complete one run
+        boss (Boss): boss object
     """
     try:
         results = run_ocr(image, ocr)
-        results = find_loot(" ".join(results), threshold=85)
+        results = find_loot(" ".join(results), boss, threshold=85)
 
         for result in results:
             print(
@@ -200,13 +210,67 @@ def _process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str) -> None:
         error = check_loot_plausibility(loot)
         append_run(
             player="Jan-Eike",
-            boss="Sirus",
-            loot=", ".join([LOOT_MAPPING[loot_item] for loot_item in loot]),
+            boss=boss.display_name,
+            loot=", ".join([boss.loot_map[loot_item] for loot_item in loot]),
             time_to_complete=mm_ss,
             error=error,
         )
     except Exception as e:  # noqa: BLE001
         print(f"OCR thread error: {e}")
+        error = check_loot_plausibility(loot)
+        append_run(
+            player="Jan-Eike",
+            boss=boss.display_name,
+            loot=", ".join([boss.loot_map[loot_item] for loot_item in loot]),
+            time_to_complete=mm_ss,
+            error=error,
+        )
+
+
+def read_client() -> list[str]:
+    with open(CLIENT, "rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(max(0, size - 512))
+        tail = f.read().decode(errors="ignore")
+    return tail.splitlines()
+
+
+def detect_boss(lines: list[str]) -> Boss | None:
+    if not lines:
+        return None
+    last_line = lines[-1]
+    area_level_match = re.findall(r"Generating level (\d*) area", last_line)
+    if not area_level_match:
+        return None
+    area_level = int(area_level_match[0])
+    for boss in BOSSES:
+        if boss.location in last_line and boss.area_level == area_level:
+            return boss
+    return None
+
+
+def detect_boss_kill(lines: list[str], boss: Boss) -> bool:
+    return bool(lines and boss.kill_line and boss.kill_line in lines[-1])
+
+
+def process_boss_kill(time_start, ocr, boss: Boss) -> tuple[None, Literal[False]]:
+    time_end = datetime.now(UTC)
+    print(time_end)
+    detected = False
+    time_total = time_end - time_start + timedelta(seconds=10)
+    mm_ss = f"{int(time_total.total_seconds() // 60):02d}:{int(time_total.total_seconds() % 60):02d}"
+    time_to_loot = boss.time_to_loot
+    time.sleep(time_to_loot)
+    # TODO: Play sound and debug info when image was taken
+    image = capture_game()
+    # Run process_loot in a separate Thread to be able to start recording the time for the next run
+    threading.Thread(
+        target=_process_loot,
+        args=(image, ocr, mm_ss, boss),
+        daemon=True,
+    ).start()
+    return None, detected
 
 
 def main():
@@ -218,43 +282,48 @@ def main():
         use_doc_unwarping=False,
         use_textline_orientation=False,
     )
+    detected = False
 
-    # target to search for in the client.txt to determine the boss is dead
-    target = "I felt something"
-    # target to search for in the client.txt to determine when the boss arena was entered
-    target_time = "Did you really think this would work"
+    _hotkey_event = threading.Event()
 
+    def _poll_hotkey():
+        VK_F2 = 0x71
+        while True:
+            f2_pressed = user32.GetAsyncKeyState(VK_F2) & 0x8000
+            if f2_pressed:
+                _hotkey_event.set()
+                while user32.GetAsyncKeyState(VK_F2) & 0x8000:
+                    time.sleep(0.05)
+            time.sleep(0.05)
+
+    threading.Thread(target=_poll_hotkey, daemon=True).start()
+
+    time_end = datetime.now(UTC)
     # determine standard start time in case the code has to be restarted.
     time_start = datetime.now(UTC)
-
+    boss: None | Boss = None
     last_mtime = 0
+    print("Ready.")
     while True:
+        if _hotkey_event.is_set():
+            _hotkey_event.clear()
+            print((datetime.now(UTC) - time_end).total_seconds())
+        #     boss, detected = process_boss_kill(time_start, ocr, boss)
         try:
             mtime = os.path.getmtime(CLIENT)
         except OSError:
             mtime = 0
         if mtime != last_mtime:
             last_mtime = mtime
-            with open(CLIENT, "rb") as f:
-                f.seek(0, 2)
-                size = f.tell()
-                f.seek(max(0, size - 512))
-                tail = f.read().decode(errors="ignore")
-            lines = tail.splitlines()
-            if lines and target_time in lines[-1]:
+            lines = read_client()
+            boss = boss or detect_boss(lines)
+            if boss and not detected:
                 time_start = datetime.now(UTC)
-            if lines and target in lines[-1]:
-                time_end = datetime.now(UTC)
-                time_total = time_end - time_start + timedelta(seconds=10)
-                mm_ss = f"{int(time_total.total_seconds() // 60):02d}:{int(time_total.total_seconds() % 60):02d}"
-                image = capture_game()
-                # Run process_loot in a separate Thread to be able to start recording the time for the next run
-                threading.Thread(
-                    target=_process_loot,
-                    args=(image, ocr, mm_ss),
-                    daemon=True,
-                ).start()
-        time.sleep(1)
+                print(boss.display_name)
+                detected = True
+            if boss and lines and detect_boss_kill(lines, boss):
+                boss, detected = process_boss_kill(time_start, ocr, boss)
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":
