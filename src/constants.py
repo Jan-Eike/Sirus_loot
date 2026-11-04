@@ -25,3 +25,5 @@ LOOT_EXCLUDED: list[str] = [
     "crusader gloves",
     "royal burgonet",
 ]
+
+AUTO_TRACK = True

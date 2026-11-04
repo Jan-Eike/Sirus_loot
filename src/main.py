@@ -11,6 +11,7 @@ from typing import Literal
 import cv2
 import mss
 import numpy as np
+import pygame
 import pygetwindow as gw
 from cv2.typing import MatLike
 from paddleocr import PaddleOCR
@@ -21,7 +22,7 @@ from boss_definitions import BOSSES
 user32 = ctypes.windll.user32
 
 from boss_data import Boss
-from constants import LOOT_EXCLUDED
+from constants import AUTO_TRACK, LOOT_EXCLUDED
 from google_sheets_data import append_run
 
 GAME_TITLE = "Path of Exile"
@@ -34,6 +35,11 @@ CLIENT: str = _config.get(
     "client_path",
     "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt",
 )
+
+
+def play_sound(path: str) -> None:
+    pygame.mixer.music.load(path)
+    pygame.mixer.music.play()
 
 
 def check_loot_plausibility(loot: list[str]) -> bool:
@@ -258,12 +264,13 @@ def process_boss_kill(time_start, ocr, boss: Boss) -> tuple[None, Literal[False]
     time_end = datetime.now(UTC)
     print(time_end)
     detected = False
+    # TODO: Change Time calculation
     time_total = time_end - time_start + timedelta(seconds=10)
     mm_ss = f"{int(time_total.total_seconds() // 60):02d}:{int(time_total.total_seconds() % 60):02d}"
     time_to_loot = boss.time_to_loot
     time.sleep(time_to_loot)
-    # TODO: Play sound and debug info when image was taken
     image = capture_game()
+    play_sound("assets/beep_on.ogg")
     # Run process_loot in a separate Thread to be able to start recording the time for the next run
     threading.Thread(
         target=_process_loot,
@@ -282,6 +289,7 @@ def main():
         use_doc_unwarping=False,
         use_textline_orientation=False,
     )
+    pygame.mixer.init()
     detected = False
 
     _hotkey_event = threading.Event()
@@ -298,17 +306,16 @@ def main():
 
     threading.Thread(target=_poll_hotkey, daemon=True).start()
 
-    time_end = datetime.now(UTC)
     # determine standard start time in case the code has to be restarted.
     time_start = datetime.now(UTC)
     boss: None | Boss = None
     last_mtime = 0
     print("Ready.")
+    play_sound("assets/beep_on.ogg")
     while True:
-        if _hotkey_event.is_set():
+        if _hotkey_event.is_set() and boss:
             _hotkey_event.clear()
-            print((datetime.now(UTC) - time_end).total_seconds())
-        #     boss, detected = process_boss_kill(time_start, ocr, boss)
+            boss, detected = process_boss_kill(time_start, ocr, boss)
         try:
             mtime = os.path.getmtime(CLIENT)
         except OSError:
@@ -321,7 +328,13 @@ def main():
                 time_start = datetime.now(UTC)
                 print(boss.display_name)
                 detected = True
-            if boss and lines and detect_boss_kill(lines, boss):
+            if (
+                AUTO_TRACK
+                and boss
+                and boss.auto_trackable
+                and lines
+                and detect_boss_kill(lines, boss)
+            ):
                 boss, detected = process_boss_kill(time_start, ocr, boss)
         time.sleep(0.1)
 

@@ -1,6 +1,5 @@
 from boss_data import Boss
 
-# TODO: Add auto trackable
 BOSSES: list[Boss] = [
     Boss(
         name="sirus",
@@ -70,7 +69,7 @@ BOSSES: list[Boss] = [
         location="Synthesis_MapBoss",
         area_level=84,
         kill_line="This will never be over",
-        time_to_loot=16,
+        time_to_loot=17,
         loot_bases=[
             "legion gloves",
             "ezomyte spiked shield",
@@ -97,7 +96,7 @@ BOSSES: list[Boss] = [
         location="Synthesis_MapBoss",
         area_level=85,
         kill_line="This will never be over",
-        time_to_loot=16,
+        time_to_loot=17,
         loot_bases=[
             "void sceptre",
             "magistrate crown",
@@ -188,8 +187,8 @@ BOSSES: list[Boss] = [
         display_name="Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=84,
-        kill_line="",
-        time_to_loot=0,
+        kill_line="Madness... consumes...",
+        time_to_loot=10,
         loot_bases=[
             "steel ring",
             "cloth belt",
@@ -210,6 +209,7 @@ BOSSES: list[Boss] = [
             "frostmage support": "Frostmage Support",
             "orb of remembrance": "Orb of Remembrance",
             "monochrome": "Monochrome",
+            "astrolabe": "Astrolabe",
         },
         is_uber=False,
     ),
@@ -218,8 +218,8 @@ BOSSES: list[Boss] = [
         display_name="Uber Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=85,
-        kill_line="",
-        time_to_loot=0,
+        kill_line="Madness... consumes...",
+        time_to_loot=10,
         loot_bases=[
             "paladin crown",
             "spiny round shield",
@@ -242,6 +242,7 @@ BOSSES: list[Boss] = [
             "frostmage support": "Frostmage Support",
             "orb of remembrance": "Orb of Remembrance",
             "monochrome": "Monochrome",
+            "astrolabe": "Astrolabe",
         },
         is_uber=True,
     ),
@@ -251,8 +252,8 @@ BOSSES: list[Boss] = [
         display_name="Dread",
         location="MapWorldsMemoryBoss3",
         area_level=84,
-        kill_line="",
-        time_to_loot=0,
+        kill_line="Her dread... shall not be erased so easily",
+        time_to_loot=7,
         loot_bases=[
             "marble amulet",
             "lich's circlet",
@@ -271,6 +272,7 @@ BOSSES: list[Boss] = [
             "prismatic jewel": "Bound By Destiny",
             "congregation support": "Congregation Support",
             "orb of unravelling": "Orb of Unravelling",
+            "astrolabe": "Astrolabe",
         },
         is_uber=False,
     ),
@@ -279,8 +281,8 @@ BOSSES: list[Boss] = [
         display_name="Uber Dread",
         location="MapWorldsMemoryBoss3",
         area_level=85,
-        kill_line="",
-        time_to_loot=0,
+        kill_line="Her dread... shall not be erased so easily",
+        time_to_loot=7,
         loot_bases=[
             "faithful helmet",
             "seaglass amulet",
@@ -301,6 +303,7 @@ BOSSES: list[Boss] = [
             "prismatic jewel": "Bound By Destiny",
             "congregation support": "Congregation Support",
             "orb of unravelling": "Orb of Unravelling",
+            "astrolabe": "Astrolabe",
         },
         is_uber=True,
     ),
@@ -340,6 +343,7 @@ BOSSES: list[Boss] = [
             "auspicious ambitions": "Auspicious Ambitions",
         },
         is_uber=False,
+        auto_trackable=False,
     ),
     Boss(
         name="uber_uber_elder",
@@ -383,6 +387,7 @@ BOSSES: list[Boss] = [
             "auspicious ambitions": "Auspicious Ambitions",
         },
         is_uber=True,
+        auto_trackable=False,
     ),
     Boss(
         name="exarch",
@@ -522,13 +527,14 @@ BOSSES: list[Boss] = [
         },
         is_uber=True,
     ),
+    # TODO: Check Time
     Boss(
         name="maven",
         display_name="Maven",
         location="MavenBoss",
         area_level=84,
         kill_line="The living toy must enjoy",
-        time_to_loot=0,
+        time_to_loot=5,
         loot_bases=[
             "wyrmscale boots",
             "cloth belt",
@@ -555,7 +561,7 @@ BOSSES: list[Boss] = [
         location="MavenBoss",
         area_level=85,
         kill_line="The living toy must enjoy",
-        time_to_loot=0,
+        time_to_loot=5,
         loot_bases=[
             "praetor crown",
             "viridian jewel",
@@ -618,6 +624,7 @@ BOSSES: list[Boss] = [
             "fragment of shape": "Fragment of Shape",
         },
         is_uber=False,
+        auto_trackable=False,
     ),
     Boss(
         name="uber_shaper",
@@ -655,5 +662,6 @@ BOSSES: list[Boss] = [
             "fragment of shape": "Fragment of Shape",
         },
         is_uber=True,
+        auto_trackable=False,
     ),
 ]

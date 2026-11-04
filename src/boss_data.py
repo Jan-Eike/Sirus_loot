@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 
-# TODO: Add auto trackable
 @dataclass
 class Boss:
     name: str
