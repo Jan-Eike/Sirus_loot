@@ -21,8 +21,8 @@ from boss_definitions import BOSSES
 
 user32 = ctypes.windll.user32
 
-from boss_data import Boss
-from constants import AUTO_TRACK, LOOT_EXCLUDED
+from boss import Boss
+from constants import AUTO_TRACK, LOOT_EXCLUDED, VK_F2
 from google_sheets_data import append_run
 
 GAME_TITLE = "Path of Exile"
@@ -295,7 +295,6 @@ def main():
     _hotkey_event = threading.Event()
 
     def _poll_hotkey():
-        VK_F2 = 0x71
         while True:
             f2_pressed = user32.GetAsyncKeyState(VK_F2) & 0x8000
             if f2_pressed:

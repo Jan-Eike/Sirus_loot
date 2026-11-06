@@ -27,3 +27,6 @@ LOOT_EXCLUDED: list[str] = [
 ]
 
 AUTO_TRACK = True
+
+# Hotkey for manual detection
+VK_F2 = 0x71
