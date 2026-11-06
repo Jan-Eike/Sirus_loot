@@ -8,6 +8,7 @@ import pygetwindow as gw
 from cv2.typing import MatLike
 
 from constants import LOOT_EXCLUDED
+from data.boss import Boss
 
 GAME_TITLE = "Path of Exile"
 
@@ -23,7 +24,7 @@ def play_sound(path: str) -> None:
     pygame.mixer.music.play()
 
 
-def check_loot_plausibility(loot: list[str]) -> bool:
+def check_loot_plausibility(loot: list[str], boss: Boss) -> bool:
     """Check if the detected loot is a possible combination.
     This is needed because some non-boss drop items have the same base type as boss drop items.
 
@@ -33,6 +34,11 @@ def check_loot_plausibility(loot: list[str]) -> bool:
     Returns:
         bool: Loot is possible or not
     """
+    # Always Error for duplicate base types
+    if boss.display_name == "Eater" and "crimson jewel" in loot:
+        return True
+    if boss.display_name == "Exarch" and "cobalt jewel" in loot:
+        return True
     return sum(item in LOOT_EXCLUDED for item in loot) >= 2
 
 

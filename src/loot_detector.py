@@ -194,7 +194,7 @@ def process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str, boss: Boss) -> None
             )
 
         loot: list[str] = [str(result["item"]) for result in results]
-        error = check_loot_plausibility(loot)
+        error = check_loot_plausibility(loot, boss)
         append_run(
             player="Jan-Eike",
             boss=boss.display_name,
@@ -204,7 +204,7 @@ def process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str, boss: Boss) -> None
         )
     except Exception as e:  # noqa: BLE001
         print(f"OCR thread error: {e}")
-        error = check_loot_plausibility(loot)
+        error = check_loot_plausibility(loot, boss)
         append_run(
             player="Jan-Eike",
             boss=boss.display_name,
