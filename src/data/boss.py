@@ -7,7 +7,7 @@ class Boss:
     display_name: str
     location: str
     area_level: int
-    kill_line: str
+    kill_lines: list[str]
     time_to_loot: float
     loot_bases: list[str]
     loot_map: dict[str, str]

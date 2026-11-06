@@ -22,4 +22,7 @@ def detect_boss(line: str) -> Boss | None:
 
 
 def detect_boss_kill(line: str, boss: Boss) -> bool:
-    return bool(boss.kill_line and boss.kill_line in line)
+    for kill_line in boss.kill_lines:
+        if kill_line and kill_line in line:
+            return True
+    return False

@@ -6,7 +6,7 @@ BOSSES: list[Boss] = [
         display_name="Sirus",
         location="AtlasExilesBoss5",
         area_level=84,
-        kill_line="I felt something",
+        kill_lines=["I felt something"],
         time_to_loot=0,
         loot_bases=[
             "crimson jewel",
@@ -35,7 +35,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Sirus",
         location="AtlasExilesBoss5",
         area_level=85,
-        kill_line="I felt something",
+        kill_lines=["I felt something"],
         time_to_loot=0,
         loot_bases=[
             "oubliette reliquary key",
@@ -68,7 +68,7 @@ BOSSES: list[Boss] = [
         display_name="Venarius",
         location="Synthesis_MapBoss",
         area_level=84,
-        kill_line="This will never be over",
+        kill_lines=["This will never be over"],
         time_to_loot=17,
         loot_bases=[
             "legion gloves",
@@ -95,7 +95,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Venarius",
         location="Synthesis_MapBoss",
         area_level=85,
-        kill_line="This will never be over",
+        kill_lines=["This will never be over"],
         time_to_loot=17,
         loot_bases=[
             "void sceptre",
@@ -127,7 +127,7 @@ BOSSES: list[Boss] = [
         display_name="Trauma",
         location="MapWorldsMemoryBoss1",
         area_level=84,
-        kill_line="I was not myself...",
+        kill_lines=["I was not myself..."],
         time_to_loot=10,
         loot_bases=[
             "opal ring",
@@ -156,7 +156,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Trauma",
         location="MapWorldsMemoryBoss1",
         area_level=85,
-        kill_line="I was not myself...",
+        kill_lines=["I was not myself..."],
         time_to_loot=10,
         loot_bases=[
             "amethyst ring",
@@ -187,7 +187,7 @@ BOSSES: list[Boss] = [
         display_name="Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=84,
-        kill_line="Madness... consumes...",
+        kill_lines=["Madness... consumes..."],
         time_to_loot=10,
         loot_bases=[
             "steel ring",
@@ -218,7 +218,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=85,
-        kill_line="Madness... consumes...",
+        kill_lines=["Madness... consumes..."],
         time_to_loot=10,
         loot_bases=[
             "paladin crown",
@@ -252,7 +252,7 @@ BOSSES: list[Boss] = [
         display_name="Dread",
         location="MapWorldsMemoryBoss3",
         area_level=84,
-        kill_line="Her dread... shall not be erased so easily",
+        kill_lines=["Her dread... shall not be erased so easily"],
         time_to_loot=7,
         loot_bases=[
             "marble amulet",
@@ -281,7 +281,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Dread",
         location="MapWorldsMemoryBoss3",
         area_level=85,
-        kill_line="Her dread... shall not be erased so easily",
+        kill_lines=["Her dread... shall not be erased so easily"],
         time_to_loot=7,
         loot_bases=[
             "faithful helmet",
@@ -312,7 +312,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Elder",
         location="MapWorldsElderArenaUber",
         area_level=84,
-        kill_line="",
+        kill_lines=[""],
         time_to_loot=0,
         loot_bases=[
             "opal ring",
@@ -350,7 +350,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Uber Elder",
         location="MapWorldsElderArenaUber",
         area_level=85,
-        kill_line="",
+        kill_lines=[""],
         time_to_loot=0,
         loot_bases=[
             "sapphire ring",
@@ -394,7 +394,7 @@ BOSSES: list[Boss] = [
         display_name="Exarch",
         location="MapWorldsPrimordialBoss3",
         area_level=84,
-        kill_line="until the others arrive to challenge me",
+        kill_lines=["until the others arrive to challenge me"],
         time_to_loot=0,
         loot_bases=[
             "colossal tower shield",
@@ -425,7 +425,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Exarch",
         location="MapWorldsPrimordialBoss3",
         area_level=85,
-        kill_line="until the others arrive to challenge me",
+        kill_lines=["until the others arrive to challenge me"],
         time_to_loot=0,
         loot_bases=[
             "quarterstaff",
@@ -464,7 +464,7 @@ BOSSES: list[Boss] = [
         display_name="Eater",
         location="MapWorldsPrimordialBoss4",
         area_level=84,
-        kill_line="until the others arrive to challenge me",
+        kill_lines=["until the others arrive to challenge me"],
         time_to_loot=0,
         loot_bases=[
             "fugitive boots",
@@ -495,7 +495,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Eater",
         location="MapWorldsPrimordialBoss4",
         area_level=85,
-        kill_line="until the others arrive to challenge me",
+        kill_lines=["until the others arrive to challenge me"],
         time_to_loot=0,
         loot_bases=[
             "zealot helmet",
@@ -533,8 +533,8 @@ BOSSES: list[Boss] = [
         display_name="Maven",
         location="MavenBoss",
         area_level=84,
-        kill_line="The living toy must enjoy",
-        time_to_loot=5,
+        kill_lines=["I require aid", "Caretaker! To me!"],
+        time_to_loot=6,
         loot_bases=[
             "wyrmscale boots",
             "cloth belt",
@@ -560,8 +560,8 @@ BOSSES: list[Boss] = [
         display_name="Uber Maven",
         location="MavenBoss",
         area_level=85,
-        kill_line="The living toy must enjoy",
-        time_to_loot=5,
+        kill_lines=["I require aid", "Caretaker! To me!"],
+        time_to_loot=6,
         loot_bases=[
             "praetor crown",
             "viridian jewel",
@@ -599,7 +599,7 @@ BOSSES: list[Boss] = [
         display_name="Shaper",
         location="MapWorldsShapersRealm",
         area_level=84,
-        kill_line="",
+        kill_lines=[""],
         time_to_loot=0,
         loot_bases=[
             "crusader gloves",
@@ -631,7 +631,7 @@ BOSSES: list[Boss] = [
         display_name="Uber Shaper",
         location="MapWorldsShapersRealm",
         area_level=85,
-        kill_line="",
+        kill_lines=[""],
         time_to_loot=0,
         loot_bases=[
             "royal burgonet",
