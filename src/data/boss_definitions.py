@@ -1,4 +1,4 @@
-from boss import Boss
+from data.boss import Boss
 
 BOSSES: list[Boss] = [
     Boss(

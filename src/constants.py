@@ -30,3 +30,7 @@ AUTO_TRACK = True
 
 # Hotkey for manual detection
 VK_F2 = 0x71
+
+CLIENT = (
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt"
+)

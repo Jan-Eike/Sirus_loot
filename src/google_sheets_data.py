@@ -1,4 +1,5 @@
 """Google-Sheets Datenoperationen für den PoE Loot Tracker."""
+
 from __future__ import annotations
 
 import re
