@@ -1,3 +1,4 @@
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -61,23 +62,53 @@ class EncounterTracker:
         if encounter is None:
             return
 
+        # Clear immediately so the next boss can be detected while we wait.
+        self.active = None
+
         elapsed_seconds = (
             time.monotonic() - encounter.started_at + RUN_TIMER_OFFSET_SECONDS
         )
 
-        # Clear the encounter first so a capture/OCR failure cannot leave
-        # the tracker stuck on the previous boss.
-        self.active = None
+        if encounter.boss.time_to_loot <= 0:
+            self._capture_and_submit(
+                encounter.boss,
+                elapsed_seconds,
+            )
+            return
 
+        timer = threading.Timer(
+            interval=encounter.boss.time_to_loot,
+            function=self._capture_and_submit,
+            args=(
+                encounter.boss,
+                elapsed_seconds,
+            ),
+        )
+        timer.daemon = True
+        timer.start()
+
+    def _capture_and_submit(
+        self,
+        boss: Boss,
+        elapsed_seconds: float,
+    ) -> None:
         try:
             image = capture_game()
             play_sound("assets/beep_on.ogg")
-        except Exception as error:
-            print(f"Screenshot failed for {encounter.boss.display_name}: {error}")
+        except Exception as error:  # noqa: BLE001
+            print(f"Screenshot failed for {boss.display_name}: {error}")
             return
 
         self.on_kill(
-            encounter.boss,
+            boss,
             elapsed_seconds,
             image,
         )
+
+    def cancel(self) -> None:
+        if self.active is None:
+            print("No active boss to cancel.")
+            return
+
+        self.active = None
+        print("Cancelled boss")

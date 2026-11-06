@@ -1,6 +1,7 @@
-import queue
-import threading
+import multiprocessing as mp
 from dataclasses import dataclass
+from multiprocessing import synchronize
+from multiprocessing.queues import Queue
 
 from cv2.typing import MatLike
 from paddleocr import PaddleOCR
@@ -18,16 +19,56 @@ class LootJob:
     image: MatLike
 
 
-class LootWorker:
-    def __init__(self, ocr: PaddleOCR) -> None:
-        self.ocr = ocr
-        self.jobs: queue.Queue[LootJob] = queue.Queue()
+def create_ocr() -> PaddleOCR:
+    return PaddleOCR(
+        lang="en",
+        device="cpu",
+        enable_mkldnn=False,
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
+        use_textline_orientation=False,
+    )
 
-        threading.Thread(
-            target=self._run,
+
+def run_loot_worker(jobs: Queue, ready: synchronize.Event) -> None:
+    ocr = create_ocr()
+    ready.set()
+
+    while True:
+        job = jobs.get()
+
+        if job is None:
+            return
+
+        try:
+            process_loot(
+                image=job.image,
+                ocr=ocr,
+                mm_ss=format_duration(job.elapsed_seconds),
+                boss=job.boss,
+            )
+        except Exception as error:  # noqa: BLE001
+            print(f"OCR failed for {job.boss.display_name}: {error}")
+
+
+class LootWorker:
+    def __init__(self) -> None:
+        context = mp.get_context("spawn")
+
+        self.jobs = context.Queue()
+        ready = context.Event()
+
+        self.process = context.Process(
+            target=run_loot_worker,
+            args=(self.jobs, ready),
             name="loot-worker",
             daemon=True,
-        ).start()
+        )
+
+        self.process.start()
+
+        if not ready.wait(timeout=120):
+            raise RuntimeError("OCR worker failed to start")
 
     def submit(
         self,
@@ -42,22 +83,6 @@ class LootWorker:
                 image=image,
             )
         )
-
-    def _run(self) -> None:
-        while True:
-            job = self.jobs.get()
-
-            try:
-                process_loot(
-                    image=job.image,
-                    ocr=self.ocr,
-                    mm_ss=format_duration(job.elapsed_seconds),
-                    boss=job.boss,
-                )
-            except Exception as error:
-                print(f"OCR failed for {job.boss.display_name}: {error}")
-            finally:
-                self.jobs.task_done()
 
 
 def format_duration(seconds: float) -> str:
