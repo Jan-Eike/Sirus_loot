@@ -1,5 +1,7 @@
 AUTO_TRACK = True
 
+PLAYER = "Jan-Eike"
+
 # Hotkey for manual detection
 VK_F2 = 0x71
 

@@ -7,6 +7,7 @@ from cv2.typing import MatLike
 from paddleocr import PaddleOCR
 from rapidfuzz import fuzz, process
 
+from constants import PLAYER
 from data.boss import Boss
 from google_sheets_data import append_run
 from utils import check_loot_plausibility, normalize
@@ -196,7 +197,7 @@ def process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str, boss: Boss) -> None
         loot: list[str] = [str(result["item"]) for result in results]
         error = check_loot_plausibility(loot, boss)
         append_run(
-            player="Jan-Eike",
+            player=PLAYER,
             boss=boss.display_name,
             loot=", ".join([boss.loot_map[loot_item] for loot_item in loot]),
             time_to_complete=mm_ss,
@@ -206,7 +207,7 @@ def process_loot(image: MatLike, ocr: PaddleOCR, mm_ss: str, boss: Boss) -> None
         print(f"OCR thread error: {e}")
         error = check_loot_plausibility(loot, boss)
         append_run(
-            player="Jan-Eike",
+            player=PLAYER,
             boss=boss.display_name,
             loot=", ".join([boss.loot_map[loot_item] for loot_item in loot]),
             time_to_complete=mm_ss,
