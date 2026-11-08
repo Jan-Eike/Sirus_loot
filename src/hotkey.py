@@ -47,10 +47,10 @@ class HotkeyPoller:
             f2_pressed = self._is_pressed(VK_F2)
             f3_pressed = self._is_pressed(VK_F3)
 
-            if f2_pressed and not previous_f3:
+            if f2_pressed and not previous_f2:
                 self._actions.put(HotkeyAction.FINISH_BOSS)
 
-            if f3_pressed and not previous_f2:
+            if f3_pressed and not previous_f3:
                 self._actions.put(HotkeyAction.CANCEL_BOSS)
 
             previous_f2 = f2_pressed
