@@ -1,32 +1,3 @@
-# TODO: Complete
-LOOT_EXCLUDED: list[str] = [
-    "goliath greaves",
-    "crimson jewel",
-    "bismuth flask",
-    "prismatic ring",
-    "legion sword",
-    "sulphur flask",
-    "void sceptre",
-    "the unseen hue",
-    "coiling whisper",
-    "steel ring",
-    "paladin crown",
-    "bonemeld",
-    "the hallowed monarch",
-    "fragment of terror",
-    "fragment of emptiness",
-    "cyclopean coil",
-    "colossal tower shield",
-    "quarterstaff",
-    "inextricable fate",
-    "ravenous passion",
-    "cloth belt",
-    "two hand sword",
-    "crusader gloves",
-    "royal burgonet",
-    "onyx amulet",
-]
-
 AUTO_TRACK = True
 
 # Hotkey for manual detection

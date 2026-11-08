@@ -18,6 +18,12 @@ BOSSES: list[Boss] = [
             "orb of dominance",
             "a fate worse than death",
         ],
+        loot_excluded=[
+            "crimson jewel",
+            "prophet crown",
+            "crusader gloves",
+            "crystal belt",
+        ],
         loot_map={
             "crimson jewel": "Thread of Hope",
             "prophet crown": "Crown of the Inward Eye",
@@ -49,6 +55,13 @@ BOSSES: list[Boss] = [
             "orb of dominance",
             "a fate worse than death",
         ],
+        loot_excluded=[
+            "goliath greaves",
+            "crimson jewel",
+            "bismuth flask",
+            "prismatic ring",
+            "legion sword",
+        ],
         loot_map={
             "oubliette reliquary key": "Oubliette Reliquary Key",
             "goliath greaves": "The Tempest Rising",
@@ -79,6 +92,12 @@ BOSSES: list[Boss] = [
             "the hook",
             "imperfect memories",
         ],
+        loot_excluded=[
+            "legion gloves",
+            "ezomyte spiked shield",
+            "savant's robe",
+            "sulphur flask",
+        ],
         loot_map={
             "legion gloves": "Offering to the Serpent",
             "ezomyte spiked shield": "Perepiteia",
@@ -108,6 +127,13 @@ BOSSES: list[Boss] = [
             "the hook",
             "imperfect memories",
         ],
+        loot_excluded=[
+            "void sceptre",
+            "magistrate crown",
+            "cabalist regalia",
+            "prismatic ring",
+            "cobalt jewel",
+        ],
         loot_map={
             "void sceptre": "Nebulis",
             "magistrate crown": "Mask of the Tribunal",
@@ -121,10 +147,9 @@ BOSSES: list[Boss] = [
         },
         is_uber=True,
     ),
-    # TODO: FIX
     Boss(
-        name="trauma",
-        display_name="Trauma",
+        name="fear",
+        display_name="Incarnation of Fear",
         location="MapWorldsMemoryBoss1",
         area_level=84,
         kill_lines=["I was not myself..."],
@@ -139,11 +164,17 @@ BOSSES: list[Boss] = [
             "orb of intention",
             "astrolabe",
         ],
+        loot_excluded=[
+            "opal ring",
+            "torturer garb",
+            "vermillion ring",
+            "abyssal axe",
+        ],
         loot_map={
-            "the unseen hue": "The Unseen Hue",
-            "servant of decay": "Servant of Decay",
-            "enmity's embrace": "Enmity's Embrace",
-            "starcaller": "Starcaller",
+            "opal ring": "The Unseen Hue",
+            "torturer garb": "Servant of Decay",
+            "vermillion ring": "Enmity's Embrace",
+            "abyssal axe": "Starcaller",
             "prismatic jewel": "Bound By Destiny",
             "greater devour support": "Greater Devour Support",
             "orb of intention": "Orb of Intention",
@@ -152,8 +183,8 @@ BOSSES: list[Boss] = [
         is_uber=False,
     ),
     Boss(
-        name="uber_trauma",
-        display_name="Uber Trauma",
+        name="uber_fear",
+        display_name="Uber Incarnation of Fear",
         location="MapWorldsMemoryBoss1",
         area_level=85,
         kill_lines=["I was not myself..."],
@@ -169,11 +200,17 @@ BOSSES: list[Boss] = [
             "orb of intention",
             "astrolabe",
         ],
+        loot_excluded=[
+            "amethyst ring",
+            "antique gauntlets",
+            "imperial bow",
+            "steel ring",
+        ],
         loot_map={
-            "coiling whisper": "Coiling Whisper",
-            "the caged mammoth": "The Caged Mammoth",
-            "wing of the wyvern": "Wing of the Wyvern",
-            "woespike": "Woespike",
+            "amethyst ring": "Coiling Whisper",
+            "antique gauntlets": "The Caged Mammoth",
+            "imperial bow": "Wing of the Wyvern",
+            "steel ring": "Woespike",
             "traumatic reliquary key": "Traumatic Reliquary Key",
             "prismatic jewel": "Bound By Destiny",
             "greater devour support": "Greater Devour Support",
@@ -184,7 +221,7 @@ BOSSES: list[Boss] = [
     ),
     Boss(
         name="neglect",
-        display_name="Neglect",
+        display_name="Incarnation of Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=84,
         kill_lines=["Madness... consumes..."],
@@ -199,6 +236,12 @@ BOSSES: list[Boss] = [
             "orb of remembrance",
             "monochrome",
             "astrolabe",
+        ],
+        loot_excluded=[
+            "steel ring",
+            "cloth belt",
+            "astrolabe amulet",
+            "judgement staff",
         ],
         loot_map={
             "steel ring": "Betrayal's Sting",
@@ -215,7 +258,7 @@ BOSSES: list[Boss] = [
     ),
     Boss(
         name="uber_neglect",
-        display_name="Uber Neglect",
+        display_name="Uber Incarnation of Neglect",
         location="MapWorldsMemoryBoss2",
         area_level=85,
         kill_lines=["Madness... consumes..."],
@@ -231,6 +274,12 @@ BOSSES: list[Boss] = [
             "orb of remembrance",
             "monochrome",
             "astrolabe",
+        ],
+        loot_excluded=[
+            "paladin crown",
+            "spiny round shield",
+            "turquoise amulet",
+            "demon dagger",
         ],
         loot_map={
             "paladin crown": "Refuge in Isolation",
@@ -249,7 +298,7 @@ BOSSES: list[Boss] = [
     # TODO: FIX
     Boss(
         name="dread",
-        display_name="Dread",
+        display_name="Incarnation of Dread",
         location="MapWorldsMemoryBoss3",
         area_level=84,
         kill_lines=["Her dread... shall not be erased so easily"],
@@ -264,11 +313,17 @@ BOSSES: list[Boss] = [
             "orb of unravelling",
             "astrolabe",
         ],
+        loot_excluded=[
+            "marble amulet",
+            "lich's circlet",
+            "waxed garb",
+            "gold flask",
+        ],
         loot_map={
-            "bonemeld": "Bonemeld",
-            "the dark monarch": "The Dark Monarch",
-            "seven teachings": "Seven Teachings",
-            "wine of the prophet": "Wine of the Prophet",
+            "marble amulet": "Bonemeld",
+            "lich's circlet": "The Dark Monarch",
+            "waxed garb": "Seven Teachings",
+            "gold flask": "Wine of the Prophet",
             "prismatic jewel": "Bound By Destiny",
             "congregation support": "Congregation Support",
             "orb of unravelling": "Orb of Unravelling",
@@ -278,7 +333,7 @@ BOSSES: list[Boss] = [
     ),
     Boss(
         name="uber_dread",
-        display_name="Uber Dread",
+        display_name="Uber Incarnation of Dread",
         location="MapWorldsMemoryBoss3",
         area_level=85,
         kill_lines=["Her dread... shall not be erased so easily"],
@@ -294,11 +349,17 @@ BOSSES: list[Boss] = [
             "orb of unravelling",
             "astrolabe",
         ],
+        loot_excluded=[
+            "faithful helmet",
+            "seaglass amulet",
+            "colossal mana flask",
+            "lion sword",
+        ],
         loot_map={
-            "the hallowed monarch": "The Hallowed Monarch",
-            "whispers of infinity": "Whispers of Infinity",
-            "wellwater phylactery": "Wellwater Phylactery",
-            "the golden charlatan": "The Golden Charlatan",
+            "faithful helmet": "The Hallowed Monarch",
+            "seaglass amulet": "Whispers of Infinity",
+            "colossal mana flask": "Wellwater Phylactery",
+            "lion sword": "The Golden Charlatan",
             "reverent reliquary key": "Reverent Reliquary Key",
             "prismatic jewel": "Bound By Destiny",
             "congregation support": "Congregation Support",
@@ -327,6 +388,13 @@ BOSSES: list[Boss] = [
             "orb of dominance",
             "void of the elements",
             "auspicious ambitions",
+        ],
+        loot_excluded=[
+            "opal ring",
+            "steel ring",
+            "ornate quiver",
+            "hubris circlet",
+            "maelström staff",
         ],
         loot_map={
             "opal ring": "Mark of the Shaper",
@@ -369,6 +437,14 @@ BOSSES: list[Boss] = [
             "void of the elements",
             "auspicious ambitions",
         ],
+        loot_excluded=[
+            "sapphire ring",
+            "pig-faced bascinet",
+            "onyx amulet",
+            "carnal mitts",
+            "blood raiment",
+            "infernal sword",
+        ],
         loot_map={
             "sapphire ring": "Call of the Void",
             "pig-faced bascinet": "The Devourer of Minds",
@@ -407,6 +483,11 @@ BOSSES: list[Boss] = [
             "eldritch exalted orb",
             "auspicious ambitions",
         ],
+        loot_excluded=[
+            "colossal tower shield",
+            "vaal greaves",
+            "crimson jewel",
+        ],
         loot_map={
             "colossal tower shield": "Dawnbreaker",
             "vaal greaves": "Dawnstrider",
@@ -441,6 +522,12 @@ BOSSES: list[Boss] = [
             "eldritch chaos orb",
             "eldritch exalted orb",
             "auspicious ambitions",
+        ],
+        loot_excluded=[
+            "quarterstaff",
+            "dragonscale boots",
+            "onyx amulet",
+            "goliath gauntlets",
         ],
         loot_map={
             "quarterstaff": "The Annihilating Light",
@@ -477,6 +564,11 @@ BOSSES: list[Boss] = [
             "eldritch exalted orb",
             "auspicious ambitions",
         ],
+        loot_excluded=[
+            "fugitive boots",
+            "citadel bow",
+            "cobalt jewel",
+        ],
         loot_map={
             "fugitive boots": "Inextricable Fate",
             "citadel bow": "The Gluttonous Tide",
@@ -511,6 +603,11 @@ BOSSES: list[Boss] = [
             "eldritch exalted orb",
             "auspicious ambitions",
         ],
+        loot_excluded=[
+            "zealot helmet",
+            "onyx amulet",
+            "topaz ring",
+        ],
         loot_map={
             "zealot helmet": "Ravenous Passion",
             "onyx amulet": "Ashes of the Stars",
@@ -527,7 +624,6 @@ BOSSES: list[Boss] = [
         },
         is_uber=True,
     ),
-    # TODO: Check Time
     Boss(
         name="maven",
         display_name="Maven",
@@ -543,6 +639,12 @@ BOSSES: list[Boss] = [
             "invert the rules support",
             "orb of conflict",
             "auspicious ambitions",
+        ],
+        loot_excluded=[
+            "wyrmscale boots",
+            "cloth belt",
+            "sadist garb",
+            "infernal sword",
         ],
         loot_map={
             "wyrmscale boots": "Legacy of Fury",
@@ -576,6 +678,12 @@ BOSSES: list[Boss] = [
             "invert the rules support",
             "orb of conflict",
             "auspicious ambitions",
+        ],
+        loot_excluded=[
+            "praetor crown",
+            "viridian jewel",
+            "prophecy wand",
+            "amethyst flask",
         ],
         loot_map={
             "amethyst flask": "Progenesis",
@@ -612,6 +720,12 @@ BOSSES: list[Boss] = [
             "fragment of knowledge",
             "fragment of shape",
         ],
+        loot_excluded=[
+            "crusader gloves",
+            "murder boots",
+            "onyx amulet",
+            "ruby flask",
+        ],
         loot_map={
             "crusader gloves": "Shaper's Touch",
             "murder boots": "Voidwalker",
@@ -647,12 +761,19 @@ BOSSES: list[Boss] = [
             "fragment of knowledge",
             "fragment of shape",
         ],
+        loot_excluded=[
+            "royal burgonet",
+            "assassin's mitts",
+            "Harlequin mask",
+            "vanguard belt",
+            "infernal sword",
+        ],
         loot_map={
             "royal burgonet": "Echoes of Creation",
             "assassin's mitts": "Entropic Devastation",
             "Harlequin mask": "The Unblinking Eye",
             "vanguard belt": "The Tides of Time",
-            "two hand sword": "Starforge",
+            "infernal sword": "Starforge",
             "prismatic jewel": "Sublime Vision",
             "cosmic reliquary key": "Cosmic Reliquary Key",
             "voidstorm support": "Voidstorm Support",

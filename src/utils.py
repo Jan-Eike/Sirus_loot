@@ -7,7 +7,6 @@ import pygame
 import pygetwindow as gw
 from cv2.typing import MatLike
 
-from constants import LOOT_EXCLUDED
 from data.boss import Boss
 
 GAME_TITLE = "Path of Exile"
@@ -39,7 +38,7 @@ def check_loot_plausibility(loot: list[str], boss: Boss) -> bool:
         return True
     if boss.display_name == "Exarch" and "cobalt jewel" in loot:
         return True
-    return sum(item in LOOT_EXCLUDED for item in loot) >= 2
+    return sum(item in boss.loot_excluded for item in loot) >= 2
 
 
 def capture_game() -> MatLike:

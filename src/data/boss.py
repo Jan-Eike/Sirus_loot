@@ -10,6 +10,7 @@ class Boss:
     kill_lines: list[str]
     time_to_loot: float
     loot_bases: list[str]
+    loot_excluded: list[str]
     loot_map: dict[str, str]
     auto_trackable: bool = True
     is_uber: bool = False
