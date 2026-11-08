@@ -27,6 +27,11 @@ class HotkeyPoller:
         self._thread.start()
 
     def get_actions(self) -> list[HotkeyAction]:
+        """Return all queued actions.
+
+        Returns:
+            list[HotkeyAction]: list of actions
+        """
         actions: list[HotkeyAction] = []
 
         while True:
@@ -36,6 +41,7 @@ class HotkeyPoller:
                 return actions
 
     def close(self) -> None:
+        """close the thread."""
         self._stop_event.set()
         self._thread.join(timeout=1)
 

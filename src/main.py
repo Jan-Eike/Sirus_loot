@@ -1,18 +1,14 @@
-import ctypes
 import threading
 
 import pygame
 
 import hotkey
 from client_log_reader import ClientLogReader
+from constants import AUTO_TRACK, CLIENT
 from encounter_tracker import EncounterTracker
 from hotkey import HotkeyPoller
 from loot_detector import LootWorker
 from utils import play_sound
-
-user32 = ctypes.windll.user32
-
-from constants import AUTO_TRACK, CLIENT
 
 
 def main() -> None:
