@@ -285,7 +285,7 @@ BOSSES: list[Boss] = [
             "paladin crown": "Refuge in Isolation",
             "spiny round shield": "Bitter Instinct",
             "turquoise amulet": "Haunting Memories",
-            "rune dagger": "Festering Resentment",
+            "demon dagger": "Festering Resentment",
             "lonely reliquary key": "Lonely Reliquary Key",
             "prismatic jewel": "Bound By Destiny",
             "frostmage support": "Frostmage Support",
@@ -295,7 +295,6 @@ BOSSES: list[Boss] = [
         },
         is_uber=True,
     ),
-    # TODO: FIX
     Boss(
         name="dread",
         display_name="Incarnation of Dread",
@@ -750,7 +749,7 @@ BOSSES: list[Boss] = [
         loot_bases=[
             "royal burgonet",
             "assassin's mitts",
-            "Harlequin mask",
+            "harlequin mask",
             "vanguard belt",
             "infernal sword",
             "prismatic jewel",
@@ -764,14 +763,14 @@ BOSSES: list[Boss] = [
         loot_excluded=[
             "royal burgonet",
             "assassin's mitts",
-            "Harlequin mask",
+            "harlequin mask",
             "vanguard belt",
             "infernal sword",
         ],
         loot_map={
             "royal burgonet": "Echoes of Creation",
             "assassin's mitts": "Entropic Devastation",
-            "Harlequin mask": "The Unblinking Eye",
+            "harlequin mask": "The Unblinking Eye",
             "vanguard belt": "The Tides of Time",
             "infernal sword": "Starforge",
             "prismatic jewel": "Sublime Vision",
