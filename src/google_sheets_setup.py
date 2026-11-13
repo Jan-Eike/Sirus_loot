@@ -281,10 +281,6 @@ def main() -> None:
         "setup",
         help="Authentifiziert Google Sheets und erstellt das Sheet bei Bedarf.",
     )
-    subparsers.add_parser(
-        "authenticate",
-        help="Authentifiziert Google Sheets und speichert das OAuth-Token.",
-    )
     connect_parser = subparsers.add_parser(
         "connect",
         help="Verbindet den Tracker mit einem vorhandenen Google Sheet.",
@@ -300,9 +296,6 @@ def main() -> None:
         config = get_or_create_spreadsheet()
         print("Google-Sheets-Setup abgeschlossen.")
         print(config["url"])
-    elif args.command == "authenticate":
-        _authenticate()
-        print("Google-Sheets-Authentifizierung abgeschlossen.")
     elif args.command == "connect":
         config = connect_spreadsheet(args.spreadsheet)
         print("Google Sheet verbunden.")
