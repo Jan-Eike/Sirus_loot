@@ -1,6 +1,7 @@
 """Google-Sheets Setup/Auth/Connection für den PoE Loot Tracker."""
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -269,3 +270,37 @@ def get_or_create_spreadsheet(service: Any = None) -> dict[str, Any]:
             ) from error
 
     return create_spreadsheet(service)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Google-Sheets-Setup für den PoE Loot Tracker."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser(
+        "setup",
+        help="Authentifiziert Google Sheets und erstellt das Sheet bei Bedarf.",
+    )
+    connect_parser = subparsers.add_parser(
+        "connect",
+        help="Verbindet den Tracker mit einem vorhandenen Google Sheet.",
+    )
+    connect_parser.add_argument(
+        "spreadsheet",
+        help="URL oder ID des vorhandenen Google Sheets.",
+    )
+
+    args = parser.parse_args()
+
+    if args.command == "setup":
+        config = get_or_create_spreadsheet()
+        print("Google-Sheets-Setup abgeschlossen.")
+        print(config["url"])
+    elif args.command == "connect":
+        config = connect_spreadsheet(args.spreadsheet)
+        print("Google Sheet verbunden.")
+        print(config["url"])
+
+
+if __name__ == "__main__":
+    main()
